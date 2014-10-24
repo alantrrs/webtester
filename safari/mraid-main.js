@@ -7,138 +7,137 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-(function(window) {
-
+(function (window) {
     var mraid = window.mraid = {};
 
     // CONSTANTS ///////////////////////////////////////////////////////////////
 
-  var VERSIONS = mraid.VERSIONS = {
-    UNKNOWN : '0.0',
+    var VERSIONS = mraid.VERSIONS = {
+        UNKNOWN : '0.0',
 
-    V1  : '1.0',
-    V2  : '2.0'
-  };
+        V1 : '1.0',
+        V2 : '2.0'
+    };
 
-  var PLACEMENTS = mraid.PLACEMENTS = {
-    UNKNOWN      : 'unknown',
+    var PLACEMENTS = mraid.PLACEMENTS = {
+        UNKNOWN      : 'unknown',
 
-    INLINE       : 'inline',
-    INTERSTITIAL : 'interstitial'
-  };
+        INLINE       : 'inline',
+        INTERSTITIAL : 'interstitial'
+    };
 
-  var ORIENTATIONS = mraid.ORIENTATIONS = {
-    NONE      : 'none',
-    PORTRAIT  : 'portrait',
-    LANDSCAPE : 'landscape'
-  };
+    var ORIENTATIONS = mraid.ORIENTATIONS = {
+        NONE      : 'none',
+        PORTRAIT  : 'portrait',
+        LANDSCAPE : 'landscape'
+    };
 
-  var CLOSEPOSITIONS = mraid.CLOSEPOSITIONS = {
-    TOPLEFT     : 'top-left',
-    TOPRIGHT    : 'top-right',
-    TOPCENTER	: 'top-center',
-    BOTTOMLEFT  : 'bottom-left',
-    BOTTOMRIGHT : 'bottom-right',
-    BOTTOMCENTER: 'bottom-center',
-    CENTER      : 'center'
-  };
+    var CLOSEPOSITIONS = mraid.CLOSEPOSITIONS = {
+        TOPLEFT      : 'top-left',
+        TOPRIGHT     : 'top-right',
+        TOPCENTER	 : 'top-center',
+        BOTTOMLEFT   : 'bottom-left',
+        BOTTOMRIGHT  : 'bottom-right',
+        BOTTOMCENTER : 'bottom-center',
+        CENTER       : 'center'
+    };
 
     var STATES = mraid.STATES = {
-        UNKNOWN     :'unknown',
+        UNKNOWN  :'unknown',
 
-    LOADING		:'loading',
-        DEFAULT     :'default',
-        RESIZED     :'resized',
-        EXPANDED    :'expanded',
-        HIDDEN      :'hidden'
+        LOADING	 : 'loading',
+        DEFAULT  :'default',
+        RESIZED  :'resized',
+        EXPANDED :'expanded',
+        HIDDEN   :'hidden'
     };
 
     var EVENTS = mraid.EVENTS = {
-        INFO                :'info',
-        ORIENTATIONCHANGE   :'orientationChange',
+        INFO              : 'info',
+        ORIENTATIONCHANGE : 'orientationChange',
 
-        READY				        :'ready',
-        ERROR               :'error',
-        STATECHANGE         :'stateChange',
-        VIEWABLECHANGE		  :'viewableChange',
-        SIZECHANGE          :'sizeChange',
+        READY			  : 'ready',
+        ERROR             : 'error',
+        STATECHANGE       : 'stateChange',
+        VIEWABLECHANGE	  : 'viewableChange',
+        SIZECHANGE        : 'sizeChange',
     };
 
     var FEATURES = mraid.FEATURES = {
-        SMS         :'sms',
-        TEL         :'tel',
-        CALENDAR    :'calendar',
-        STOREPICTURE:'storePicture',
-        INLINEVIDEO	:'inlineVideo'
+        SMS          : 'sms',
+        TEL          : 'tel',
+        CALENDAR     : 'calendar',
+        STOREPICTURE : 'storePicture',
+        INLINEVIDEO	 : 'inlineVideo'
     };
 
     // PRIVATE PROPERTIES (sdk controlled) //////////////////////////////////////////////////////
 
     var state = STATES.UNKNOWN;
 
-  var placementType = PLACEMENTS.UNKNOWN;
+    var placementType = PLACEMENTS.UNKNOWN;
 
     var size = {
-        width:0,
-        height:0
+        width:  0,
+        height: 0
     };
 
     var defaultPosition = {
-        x:0,
-        y:0,
-        width:0,
-        height:0
+        x: 0,
+        y: 0,
+        width:  0,
+        height: 0
     };
 
-  var currentPosition = {
-    x:0,
-    y:0,
-    width:0,
-    height:0
-  };
+    var currentPosition = {
+        x: 0,
+        y: 0,
+        width:  0,
+        height: 0
+    };
 
     var maxSize = {
-        width:0,
-        height:0
+        width:  0,
+        height: 0
     };
 
     var expandProperties = {
-    width:0,
-    height:0,
-    useCustomClose:false,
-    isModal:true
+        width:  0,
+        height: 0,
+        useCustomClose: false,
+        isModal:        true
     };
 
-  var resizeProperties = {
-    initialized: false,
-    validated: false,
-    width: 0,
-    height: 0,
-    customClosePosition: CLOSEPOSITIONS.TOPRIGHT,
-    offsetX: undefined,
-    offsetY: undefined,
-    allowOffscreen: true
-  };
+    var resizeProperties = {
+        initialized: false,
+        validated:   false,
+        width:  0,
+        height: 0,
+        customClosePosition: CLOSEPOSITIONS.TOPRIGHT,
+        offsetX: undefined,
+        offsetY: undefined,
+        allowOffscreen: true
+    };
 
-  var orientationProperties = {
-    allowOrientationChange: true,
-    forceOrientation: ORIENTATIONS.NONE
-  };
+    var orientationProperties = {
+        allowOrientationChange: true,
+        forceOrientation: ORIENTATIONS.NONE
+    };
 
     var supports = {
-        'sms':true,
-        'tel':true,
-        'email':true,
-        'calendar':true,
-        'storePicture':true,
-    'inlineVideo':true,
-        'orientation':true
+        'sms':          true,
+        'tel':          true,
+        'email':        true,
+        'calendar':     true,
+        'storePicture': true,
+        'inlineVideo':  true,
+        'orientation':  true
     };
 
     var orientation = -1;
     var mraidVersion = VERSIONS.UNKNOWN;
     var screenSize = null;
-  var isViewable = false;
+    var isViewable = false;
 
     // PRIVATE PROPERTIES (internal) //////////////////////////////////////////////////////
 
@@ -146,23 +145,37 @@
 
     var dimensionValidators = {
         x: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
             }
+
             return ret;
         },
         y: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
             }
+
             return ret;
         },
         width: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -170,10 +183,15 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         height: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -181,13 +199,18 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         }
     };
 
     var sizeValidators = {
         width: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -195,10 +218,15 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         height: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -206,29 +234,44 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         }
     };
 
     var expandPropertyValidators = {
         isModal: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         useCustomClose: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         width: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -236,10 +279,15 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         height: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -247,29 +295,44 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         allowOrientationChange: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         forceOrientation: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value in ORIENTATIONS)) {
                 ret.value = false;
                 ret.msg = 'not a valid option';
             }
+
             return ret;
         }
     };
 
     var resizePropertyValidators = {
         width: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -277,10 +340,15 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         height: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (isNaN(value)) {
                 ret.value = false;
                 ret.msg = 'not a number';
@@ -288,82 +356,122 @@
                 ret.value = false;
                 ret.msg = 'too small';
             }
+
             return ret;
         },
         offsetX: function (value) {
-            return {'value': (!isNaN(value)), 'msg': (!isNaN(value) ? '' : 'not a number')}; 
+            return {
+                'value': (!isNaN(value)),
+                'msg': (!isNaN(value) ? '' : 'not a number')
+            };
         },
         offsetY: function (value) {
-            return {'value': (!isNaN(value)), 'msg': (!isNaN(value) ? '' : 'not a number')};
+            return {
+                'value': (!isNaN(value)),
+                'msg': (!isNaN(value) ? '' : 'not a number')
+            };
         },
         allowOffscreen: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         customClosePosition: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             for (a in CLOSEPOSITIONS) {
                 if (value === CLOSEPOSITIONS[a]) {
-                    return ret;; 
+                    return ret;;
                 }
             }
+
             ret.value = false;
             ret.msg = 'not a valid option';
+
             return ret;
         },
         initialized: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         validated: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(value === true || value === false)) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         }
     };
 
     var orientationPropertyValidators = {
         allowOrientationChange: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             if (!(typeof value === 'boolean')) {
                 ret.value = false;
                 ret.msg = 'not a valid type';
             }
+
             return ret;
         },
         forceOrientation: function (value) {
-            var ret = { 'value': true, 'msg': ''};
+            var ret = {
+                'value': true,
+                'msg': ''
+            };
+
             for (a in ORIENTATIONS) {
                 if (value === ORIENTATIONS[a]) {
                     return ret;
                 }
             }
+
             ret.value = false;
             ret.msg = 'not a valid option';
+
             return ret;
         }
     };
 
     var changeHandlers = {
-        version:function(val) {
-          mraidVersion = val;
+        version: function (val) {
+            mraidVersion = val;
         },
-        placement:function(val){
-          placementType = val;
+        placement: function (val) {
+            placementType = val;
         },
-        state:function(val) {
-            console.log('state listener. state='+state+':new='+val);
+        state: function (val) {
+            console.log('state listener. state=' + state + ':new=' + val);
+
             if (state == STATES.UNKNOWN && val != STATES.UNKNOWN) {
                 broadcastEvent(EVENTS.INFO, 'controller initialized');
             }
@@ -375,58 +483,58 @@
                 broadcastEvent(EVENTS.STATECHANGE, state);
             }
         },
-        size:function(val) {
+        size: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting size to ' + stringify(val));
             size = val;
             broadcastEvent(EVENTS.SIZECHANGE, size.width, size.height);
         },
-        defaultPosition:function(val) {
+        defaultPosition: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting default position to ' + stringify(val));
             defaultPosition = val;
         },
-        currentPosition:function(val) {
+        currentPosition: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting current position to ' + stringify(val));
             currentPosition = val;
         },
-        maxSize:function(val) {
+        maxSize: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting maxSize to ' + stringify(val));
             maxSize = val;
         },
-        expandProperties:function(val) {
+        expandProperties: function (val) {
             broadcastEvent(EVENTS.INFO, 'merging expandProperties with ' + stringify(val));
             for (var i in val) {
                 expandProperties[i] = val[i];
             }
         },
-        resizeProperties:function(val) {
+        resizeProperties: function (val) {
             broadcastEvent(EVENTS.INFO, 'merging resizeProperties with ' + stringify(val));
             for (var i in val) {
                 resizeProperties[i] = val[i];
             }
         },
-        supports:function(val) {
+        supports: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting supports to ' + stringify(val));
             supports = {};
             for (var key in FEATURES) {
                 supports[FEATURES[key]] = contains(FEATURES[key], val);
             }
         },
-        orientation:function(val) {
+        orientation: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting orientation to ' + stringify(val));
             orientation = val;
             broadcastEvent(EVENTS.ORIENTATIONCHANGE, orientation);
         },
-        screenSize:function(val) {
+        screenSize: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting screenSize to ' + stringify(val));
             screenSize = val;
             broadcastEvent(EVENTS.SCREENCHANGE, screenSize.width, screenSize.height);
         },
-        isViewable:function(val) {
+        isViewable: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting isViewable to ' + stringify(val));
             isViewable = val;
             broadcastEvent(EVENTS.VIEWABLECHANGE, isViewable);
         },
-        orientationProperties:function(val) {
+        orientationProperties: function (val) {
             broadcastEvent(EVENTS.INFO, 'setting orientationProperties to ' + stringify(val));
             for (var i in val) {
                 orientationProperties[i] = val[i];
@@ -436,28 +544,32 @@
 
     var listeners = {};
 
-    var EventListeners = function(event) {
+    var EventListeners = function (event) {
         this.event = event;
         this.count = 0;
         var listeners = {};
 
-        this.add = function(func) {
+        this.add = function (func) {
             var id = String(func);
+
             if (!listeners[id]) {
                 listeners[id] = func;
                 this.count++;
+
                 if (this.count == 1) {
                     broadcastEvent(EVENTS.INFO, 'activating ' + event);
                     mraidview.activate(event);
                 }
             }
         };
-        this.remove = function(func) {
+        this.remove = function (func) {
             var id = String(func);
+
             if (listeners[id]) {
                 listeners[id] = null;
                 delete listeners[id];
                 this.count--;
+
                 if (this.count == 0) {
                     broadcastEvent(EVENTS.INFO, 'deactivating ' + event);
                     mraidview.deactivate(event);
@@ -467,9 +579,13 @@
                 return false;
             }
         };
-        this.removeAll = function() { for (var id in listeners) this.remove(listeners[id]); };
-        this.broadcast = function(args) { for (var id in listeners) listeners[id].apply({}, args); };
-        this.toString = function() {
+        this.removeAll = function () {
+            for (var id in listeners) this.remove(listeners[id]);
+        };
+        this.broadcast = function (args) {
+            for (var id in listeners) listeners[id].apply({}, args);
+        };
+        this.toString = function () {
             var out = [event,':'];
             for (var id in listeners) out.push('|',id,'|');
             return out.join('');
@@ -480,7 +596,7 @@
 
     console = window.console; /* This is necessary for 2-Part Ads; otherwise, console returns null. */
 
-    mraidview.addEventListener('change', function(properties) {
+    mraidview.addEventListener('change', function (properties) {
         for (var property in properties) {
             var handler = changeHandlers[property];
             console.log('for property "' + property + '" typeof handler is: ' + typeof(handler));
@@ -488,17 +604,17 @@
         }
     });
 
-    mraidview.addEventListener('error', function(message, action) {
+    mraidview.addEventListener('error', function (message, action) {
         broadcastEvent(EVENTS.ERROR, message, action);
     });
 
-    var clone = function(obj) {
-        var f = function() {};
+    var clone = function (obj) {
+        var f = function () {};
         f.prototype = obj;
         return new f();
     };
 
-    var stringify = function(obj) {
+    var stringify = function (obj) {
         if (typeof obj == 'object') {
             if (obj.push) {
                 var out = [];
@@ -518,7 +634,7 @@
         }
     };
 
-    var valid = function(obj, validators, action, full) {
+    var valid = function (obj, validators, action, full) {
         if (full) {
             if (obj === undefined) {
                 broadcastEvent(EVENTS.ERROR, 'Required object missing.', action);
@@ -547,12 +663,12 @@
         return true;
     };
 
-    var contains = function(value, array) {
+    var contains = function (value, array) {
         for (var i in array) if (array[i] == value) return true;
         return false;
     };
 
-    var broadcastEvent = function() {
+    var broadcastEvent = function () {
         var args = new Array(arguments.length);
         for (var i = 0; i < arguments.length; i++) args[i] = arguments[i];
         var event = args.shift();
@@ -561,8 +677,8 @@
 
     // PUBLIC METHODS ////////////////////////////////////////////////////////////////////
 
-    mraid.signalReady = function() {
-  /* introduced in MRAIDv1 */
+    mraid.signalReady = function () {
+    /* introduced in MRAIDv1 */
     broadcastEvent(EVENTS.INFO, 'START READY SIGNAL, setting state to ' + stringify(STATES.DEFAULT));
     state = STATES.DEFAULT;
     broadcastEvent(EVENTS.STATECHANGE, state);
@@ -571,35 +687,35 @@
         window.clearInterval(intervalID);
     };
 
-  mraid.getVersion = function() {
-  /* introduced in MRAIDv1 */
-    return (mraidVersion);
-  };
+    mraid.getVersion = function () {
+    /* introduced in MRAIDv1 */
+        return (mraidVersion);
+    };
 
-    mraid.info = function(message) {
-  /* not in MRAID - unique to mraid-web-tester */
+    mraid.info = function (message) {
+    /* not in MRAID - unique to mraid-web-tester */
         broadcastEvent(EVENTS.INFO, message);
     };
 
-    mraid.error = function(message) {
-  /* introduced in MRAIDv1 */
+    mraid.error = function (message) {
+    /* introduced in MRAIDv1 */
         broadcastEvent(EVENTS.ERROR, message);
     };
 
-    mraid.addEventListener = function(event, listener) {
-  /* introduced in MRAIDv1 */
+    mraid.addEventListener = function (event, listener) {
+        /* introduced in MRAIDv1 */
         if (!event || !listener) {
             broadcastEvent(EVENTS.ERROR, 'Both event and listener are required.', 'addEventListener');
         } else if (!contains(event, EVENTS)) {
-      broadcastEvent(EVENTS.ERROR, 'Unknown event: ' + event, 'addEventListener');
+            broadcastEvent(EVENTS.ERROR, 'Unknown event: ' + event, 'addEventListener');
         } else {
             if (!listeners[event]) listeners[event] = new EventListeners(event);
             listeners[event].add(listener);
         }
     };
 
-    mraid.removeEventListener = function(event, listener) {
-  /* introduced in MRAIDv1 */
+    mraid.removeEventListener = function (event, listener) {
+        /* introduced in MRAIDv1 */
         if (!event) {
             broadcastEvent(EVENTS.ERROR, 'Must specify an event.', 'removeEventListener');
         } else {
@@ -609,6 +725,7 @@
             } else {
                 listeners[event].removeAll();
             }
+
             if (listeners[event].count == 0) {
                 listeners[event] = null;
                 delete listeners[event];
@@ -616,23 +733,23 @@
         }
     };
 
-    mraid.getState = function() {
-  /* introduced in MRAIDv1 */
+    mraid.getState = function () {
+        /* introduced in MRAIDv1 */
         return state;
     };
 
-    mraid.getPlacementType = function() {
-  /* introduced in MRAIDv1 */
+    mraid.getPlacementType = function () {
+        /* introduced in MRAIDv1 */
         return placementType;
     };
 
-  mraid.isViewable = function() {
-  /* introduced in MRAIDv1 */
-    return isViewable;
-  };
+    mraid.isViewable = function () {
+        /* introduced in MRAIDv1 */
+        return isViewable;
+    };
 
-    mraid.open = function(URL) {
-  /* introduced in MRAIDv1 */
+    mraid.open = function (URL) {
+        /* introduced in MRAIDv1 */
         if (!URL) {
             broadcastEvent(EVENTS.ERROR, 'URL is required.', 'open');
         } else {
@@ -640,14 +757,14 @@
         }
     };
 
-    mraid.expand = function(URL) {
-      if (placementType === PLACEMENTS.INLINE) {
-          mraidview.expand(URL);
+    mraid.expand = function (URL) {
+        if (placementType === PLACEMENTS.INLINE) {
+            mraidview.expand(URL);
         }
     };
 
-    /*mraid.expand = function(dimensions, URL) {
-  /* introduced in MRAIDv1 */
+    /*mraid.expand = function (dimensions, URL) {
+    /* introduced in MRAIDv1 */
     /*var bOverride = true;
     if (dimensions === undefined) {
       dimensions = {width:mraid.getMaxSize(bOverride).width, height:mraid.getMaxSize(bOverride).height, x:0, y:0};
@@ -658,35 +775,31 @@
         }
     };*/
 
-    mraid.getExpandProperties = function() {
-  /* introduced in MRAIDv1 */
-    var props = clone(expandProperties);
-    // if (parseFloat(mraidVersion, 10) < 2) {
-      // delete props.allowOrientationChange;
-      // delete props.forceOrientation;
-      // }
+    mraid.getExpandProperties = function () {
+        /* introduced in MRAIDv1 */
+        var props = clone(expandProperties);
         return props;
     };
 
-    mraid.setExpandProperties = function(properties) {
-  /* introduced in MRAIDv1 */
+    mraid.setExpandProperties = function (properties) {
+        /* introduced in MRAIDv1 */
         if (valid(properties, expandPropertyValidators, 'setExpandProperties')) {
             mraidview.setExpandProperties(properties);
         }
     };
 
-    mraid.close = function() {
-  /* introduced in MRAIDv1 */
+    mraid.close = function () {
+        /* introduced in MRAIDv1 */
         mraidview.close();
     };
 
-  mraid.useCustomClose = function(useCustomCloseIndicator) {
-  /* introduced in MRAIDv1 */
-    mraidview.useCustomClose(useCustomCloseIndicator);
-  };
+    mraid.useCustomClose = function (useCustomCloseIndicator) {
+        /* introduced in MRAIDv1 */
+        mraidview.useCustomClose(useCustomCloseIndicator);
+    };
 
-    mraid.resize = function() {
-  /* introduced in MRAIDv2 */
+    mraid.resize = function () {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (resize)', 'resize');
         } else {
@@ -705,7 +818,7 @@
         }
     };
 
-    mraid.getResizeProperties = function() {
+    mraid.getResizeProperties = function () {
         /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (getResizeProperties)', 'getResizeProperties');
@@ -715,8 +828,8 @@
         return (null);
     };
 
-    mraid.setResizeProperties = function(properties) {
-  /* introduced in MRAIDv2 */
+    mraid.setResizeProperties = function (properties) {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (setResizeProperties)', 'setResizeProperties');
         } else {
@@ -748,8 +861,8 @@
         }
     };
 
-    mraid.getCurrentPosition = function() {
-    /* introduced in MRAIDv2 */
+    mraid.getCurrentPosition = function () {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (getCurrentPosition)', 'getCurrentPosition');
         } else {
@@ -758,14 +871,14 @@
         return (null);
     };
 
-    mraid.getSize = function() {
-    /* introduced in MRAIDv1, deprecated in MRAIDv2 */
+    mraid.getSize = function () {
+        /* introduced in MRAIDv1, deprecated in MRAIDv2 */
         var pos = clone(currentPosition);
         return ({width:pos.width, height:pos.height});
     };
 
-    mraid.getMaxSize = function(bOverride) {
-    /* introduced in MRAIDv2, bOverride is an mraid-web-tester extension */
+    mraid.getMaxSize = function (bOverride) {
+        /* introduced in MRAIDv2, bOverride is an mraid-web-tester extension */
         if (!bOverride && parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (getMaxSize)', 'getMaxSize');
         } else {
@@ -774,8 +887,8 @@
         return (null);
     };
 
-    mraid.getDefaultPosition = function() {
-    /* introduced in MRAIDv2 */
+    mraid.getDefaultPosition = function () {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (getDefaultPosition)', 'getDefaultPosition');
         } else {
@@ -784,8 +897,8 @@
         return (null);
     };
 
-    mraid.getScreenSize = function() {
-    /* introduced in MRAIDv2 */
+    mraid.getScreenSize = function () {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (getScreenSize)', 'getScreenSize');
         } else {
@@ -794,8 +907,8 @@
         return (null);
     };
 
-    mraid.supports = function(feature) {
-    /* introduced in MRAIDv2 */
+    mraid.supports = function (feature) {
+        /* introduced in MRAIDv2 */
         var bSupports = false;
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (supports)', 'supports');
@@ -805,8 +918,8 @@
         return (bSupports);
     };
 
-    mraid.storePicture = function(url) {
-    /* introduced in MRAIDv2 */
+    mraid.storePicture = function (url) {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (storePicture)', 'storePicture');
         } else {
@@ -820,8 +933,8 @@
         }
     };
 
-    mraid.createCalendarEvent = function(params) {
-    /* introduced in MRAIDv2 */
+    mraid.createCalendarEvent = function (params) {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (createCalendarEvent)', 'createCalendarEvent');
         } else {
@@ -835,8 +948,8 @@
         }
     };
 
-    mraid.playVideo = function(url) {
-    /* introduced in MRAIDv2 */
+    mraid.playVideo = function (url) {
+        /* introduced in MRAIDv2 */
         if (parseFloat(mraidVersion, 10) < 2) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this version. (playVideo)', 'playVideo');
         } else {
@@ -851,8 +964,8 @@
         }
     };
 
-    mraid.getOrientation = function() {
-    /* not in MRAID - unique to mraid-web-tester */
+    mraid.getOrientation = function () {
+        /* not in MRAID - unique to mraid-web-tester */
         if (!supports[FEATURES.ORIENTATION]) {
             broadcastEvent(EVENTS.ERROR, 'Method not supported by this client. (getOrientation)', 'getOrientation');
         }

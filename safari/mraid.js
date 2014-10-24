@@ -7,7 +7,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-function mraidJsId() {
+function mraidJsId () {
 	if (typeof (mraid) === 'undefined') {
 		console.log('mraid not found yet');
 	} else {

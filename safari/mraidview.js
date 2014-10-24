@@ -47,14 +47,13 @@ INFO activating ready
 INFO mraid.js identification script found
   */
 
-(function() {
+(function () {
     var mraidview = window.mraidview = {};
 
     // CONSTANTS ///////////////////////////////////////////////////////////////
-
     var VERSIONS = mraidview.VERSIONS = {
-        V1  : '1.0',
-        V2  : '2.0'
+        V1 : '1.0',
+        V2 : '2.0'
     };
 
     var PLACEMENTS = mraidview.PLACEMENTS = {
@@ -65,44 +64,43 @@ INFO mraid.js identification script found
     }
 
     var STATES = mraidview.STATES = {
-        UNKNOWN     :'unknown',
+        UNKNOWN  :'unknown',
 
-        LOADING     :'loading',
-        DEFAULT     :'default',
-        RESIZED     :'resized',
-        EXPANDED    :'expanded',
-        HIDDEN      :'hidden'
+        LOADING  :'loading',
+        DEFAULT  :'default',
+        RESIZED  :'resized',
+        EXPANDED :'expanded',
+        HIDDEN   :'hidden'
     };
 
     var EVENTS = mraidview.EVENTS = {
-        INFO                :'info',
-        ORIENTATIONCHANGE   :'orientationChange',
+        INFO              :'info',
+        ORIENTATIONCHANGE :'orientationChange',
 
-        READY               :'ready',
-        ERROR               :'error',
-        STATECHANGE         :'stateChange',
-        VIEWABLECHANGE      :'viewableChange',
-        SIZECHANGE          :'sizeChange',
+        READY          :'ready',
+        ERROR          :'error',
+        STATECHANGE    :'stateChange',
+        VIEWABLECHANGE :'viewableChange',
+        SIZECHANGE     :'sizeChange',
     };
 
     var FEATURES = mraidview.FEATURES = {
-        SMS         :'sms',
-        TEL         :'tel',
-        CALENDAR    :'calendar',
-        STOREPICTURE:'storePicture',
-        INLINEVIDEO :'inlineVideo'
+        SMS          :'sms',
+        TEL          :'tel',
+        CALENDAR     :'calendar',
+        STOREPICTURE :'storePicture',
+        INLINEVIDEO  :'inlineVideo'
     };
 
     // EVENT HANDLING ///////////////////////////////////////////////////////////////
 
     var listeners = {};
 
-    var broadcastEvent = function() {
+    var broadcastEvent = function () {
         var args = new Array(arguments.length);
         for (var i = 0; i < arguments.length; i++) args[i] = arguments[i];
 
         var event = args.shift();
-
         for (var key in listeners[event]) {
             var handler = listeners[event][key];
             handler.func.apply(handler.func.scope, args);
@@ -111,7 +109,7 @@ INFO mraid.js identification script found
 
     mraidview.broadcastEvent = broadcastEvent;
 
-    mraidview.addEventListener = function(event, listener, scope) {
+    mraidview.addEventListener = function (event, listener, scope) {
         var key = String(listener) + String(scope);
         var map = listeners[event]
         if (!map) {
@@ -121,7 +119,7 @@ INFO mraid.js identification script found
         map[key] = {scope:(scope?scope:{}),func:listener};
     };
 
-    mraidview.removeEventListener = function(event, listener, scope) {
+    mraidview.removeEventListener = function (event, listener, scope) {
         var key = String(listener) + String(scope);
         var map = listeners[event];
         if (map) {
@@ -131,15 +129,16 @@ INFO mraid.js identification script found
     };
 
     // PRIVATE VARIABLES ///////////////////////////////////////////////////////////////
-
-    var
-        adURI = "",
+    var adURI = "",
         adURIFragment = true,
         adHtml = '',
         useHtml = false;
         adContent = '',
         adWindow = null,
-        adWindowAdj = {x:0,y:0},
+        adWindowAdj = {
+            x: 0,
+            y: 0
+        },
         adFrame = null,
         adFrameExpanded = null,
         adContainer = null,
@@ -153,23 +152,65 @@ INFO mraid.js identification script found
         intervalID = null,
         timeoutID = null,
         active = {},
-        previousPosition = { x:0, y:0, width:0, height:0 },
+        previousPosition = {
+            x: 0,
+            y: 0,
+            width:  0,
+            height: 0
+        },
         previousState = null,
         defaultWindowSize = null,
         adContainerOrientation = -1,
         counter = 10;
 
     // MRAID state variables - shared with frame
-    var
-        state = STATES.LOADING,
-        screenSize = { width:0, height:0 },
-        size = { width:0, height:0 },
-        defaultPosition = { width:0, height:0, y:0, x:0 },
-        c = { width:0, height:0, y:0, x:0 },
-        maxSize = { width:0, height:0, x:0, y:0 },
-        expandProperties = { width:0, height:0, useCustomClose:false, isModal:false},
-        orientationProperties = { allowOrientationChange:true, forceOrientation:'none' },
-        resizeProperties = { initialized: false, validated: false, width:0, height:0, customClosePosition:'top-right', offsetX:undefined, offsetY:undefined, allowOffscreen:true},
+    var state = STATES.LOADING,
+        screenSize = {
+            width:  0,
+            height: 0
+        },
+        size = {
+            width:  0,
+            height: 0
+        },
+        defaultPosition = {
+            y: 0,
+            x: 0,
+            width:  0,
+            height: 0
+        },
+        c = {
+            y: 0,
+            x: 0,
+            width:  0,
+            height: 0
+        },
+        maxSize = {
+            y: 0,
+            x: 0,
+            width:  0,
+            height: 0
+        },
+        expandProperties = {
+            width: 0,
+            height: 0,
+            useCustomClose: false,
+            isModal:        false
+        },
+        orientationProperties = {
+            allowOrientationChange: true,
+            forceOrientation: 'none'
+        },
+        resizeProperties = {
+            initialized: false,
+            validated:   false,
+            width:  0,
+            height: 0,
+            customClosePosition: 'top-right',
+            offsetX: undefined,
+            offsetY: undefined,
+            allowOffscreen: true
+        },
         supports = [],
         version = VERSIONS.UNKNOWN,
         placement = PLACEMENTS.UNKNOWN,
@@ -177,44 +218,43 @@ INFO mraid.js identification script found
         orientation = -1;
 
     // PUBLIC ACCESSOR METHODS ///////////////////////////////////////////////////////////////
-
-    mraidview.getAdContent = function() {
+    mraidview.getAdContent = function () {
         return adContent;
     };
 
-    mraidview.setScreenSize = function(width, height) {
-        screenSize.width = width;
+    mraidview.setScreenSize = function (width, height) {
+        screenSize.width  = width;
         screenSize.height = height;
-        orientation = (width >= height)?90:0;
+        orientation = (width >= height) ? 90 : 0;
         adContainerOrientation = orientation;
     };
 
-    mraidview.setDefaultPosition = function(x, y, width, height) {
+    mraidview.setDefaultPosition = function (x, y, width, height) {
         defaultPosition.x = parseInt(x);
         defaultPosition.y = parseInt(y);
-        defaultPosition.width = parseInt(width);
+        defaultPosition.width  = parseInt(width);
         defaultPosition.height = parseInt(height);
         currentPosition = defaultPosition;
     };
 
-    mraidview.setMaxAdPosition= function(x, y, width, height) {
+    mraidview.setMaxAdPosition= function (x, y, width, height) {
         maxSize.x = x;
         maxSize.y = y;
         if (orientation % 180 === 0) {
-            maxSize.width = width;
+            maxSize.width  = width;
             maxSize.height = height;
         } else {
-            maxSize.width = height;
+            maxSize.width  = height;
             maxSize.height = width;
         }
     };
 
-    mraidview.setAdURI = function(uri, fragment) {
+    mraidview.setAdURI = function (uri, fragment) {
         adURI = uri;
-        adURIFragment = (fragment)?true:false;
+        adURIFragment = (fragment) ? true : false;
     };
 
-    mraidview.setUseHtml = function(useThisHtml, html) {
+    mraidview.setUseHtml = function (useThisHtml, html) {
         useHtml = useThisHtml;
         if (useHtml) {
             adHtml = html;
@@ -223,46 +263,46 @@ INFO mraid.js identification script found
         }
     };
 
-    mraidview.resetSupports = function() {
+    mraidview.resetSupports = function () {
         supports = [];
     };
 
-    mraidview.setSupports = function(feature, doesSupport) {
+    mraidview.setSupports = function (feature, doesSupport) {
         if (doesSupport) {
             supports.push(feature);
             broadcastEvent(EVENTS.INFO, stringify(supports));
         }
     };
 
-    mraidview.setVersion = function(value) {
+    mraidview.setVersion = function (value) {
         mraidview.version = value;
         broadcastEvent(EVENTS.INFO, 'MRAID version ' + value);
     };
 
-    mraidview.setPlacement = function(value) {
+    mraidview.setPlacement = function (value) {
         placement = mraidview.placement = value;
         broadcastEvent(EVENTS.INFO, 'placement type ' + value);
     };
 
-    mraidview.setOffScreen  = function(value) {
+    mraidview.setOffScreen  = function (value) {
         offscreen = value;
     };
 
-    mraidview.rotateOrientation = function() {
+    mraidview.rotateOrientation = function () {
         mraidview.setOrientation(orientation = (orientation + 90) % 180);
     };
 
     mraidview.setOrientation = function (degree, forceOrientation) {
         if (degree%90 !== 0) return;
-        if (!adWindow || !adWindow.document) return;
-        var body = adWindow.document.getElementsByTagName('body')[0],
-            maxDiv = adWindow.document.getElementById('maxArea');
+
+        if (!adWindow) return;
+
+        var body = document.getElementById('device-ad-preview'),
+            maxDiv = document.getElementById('maxArea');
 
         maxDiv.style['-webkit-transform'] = '';
 
         if (degree%180 === 0) { // Portrait
-            adWindow.resizeTo(defaultWindowSize.outerWidth, defaultWindowSize.outerHeight);
-
             body.style.width = Math.min(screenSize.width, screenSize.height) + 'px';
             body.style.height = Math.max(screenSize.width, screenSize.height) + 'px';
 
@@ -270,21 +310,36 @@ INFO mraid.js identification script found
                 && (state === STATES.EXPANDED || placement === PLACEMENTS.INTERSTITIAL)) {
 
                 maxDiv.style['-webkit-transform'] = 'rotate(90deg)';
-                var dx = (maxSize.height - maxSize.width)/2;
-                updateAdSize({'width':maxSize.height,'height':maxSize.width,'x':maxSize.y-dx, 'y':maxSize.x+dx});
+                var dx = (maxSize.height - maxSize.width) / 2;
+                updateAdSize({
+                    'width':  maxSize.height,
+                    'height': maxSize.width,
+                    'x': maxSize.y - dx,
+                    'y': maxSize.x + dx
+                });
                 if (state === STATES.EXPANDED) {
-                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {'width':maxSize.height,'height':maxSize.width,'x':0, 'y':0});
+                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {
+                        'width':  maxSize.height,
+                        'height': maxSize.width,
+                        'x': 0,
+                        'y': 0
+                    });
                 } else if (placement === PLACEMENTS.INTERSTITIAL) {
-                    adContainer.style.width = defaultPosition.height + 'px';
+                    adContainer.style.width  = defaultPosition.height + 'px';
                     adContainer.style.height = defaultPosition.width + 'px';
-                    adContainer.style.top = defaultPosition.y + 'px';
+                    adContainer.style.top  = defaultPosition.y + 'px';
                     adContainer.style.left = defaultPosition.x + 'px';
                 }
                 setAdOrientation(90);
             } else {
                 updateAdSize(maxSize);
                 if (state === STATES.EXPANDED) {
-                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {'width':maxSize.width,'height':maxSize.height,'x':0, 'y':0});
+                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {
+                        'width':  maxSize.width,
+                        'height': maxSize.height,
+                        'x': 0,
+                        'y': 0
+                    });
                 } else if (placement === PLACEMENTS.INTERSTITIAL) {
                     setContainerDefaultPosition();
                 }
@@ -293,31 +348,50 @@ INFO mraid.js identification script found
         } else { // Landscape
             var w = (defaultWindowSize.outerWidth - defaultWindowSize.innerWidth) + defaultWindowSize.innerHeight,
                 h = (defaultWindowSize.outerHeight - defaultWindowSize.innerHeight) + defaultWindowSize.innerWidth;
-            adWindow.resizeTo(w, h);
 
             body.style.height = Math.min(screenSize.width, screenSize.height) + 'px';
-            body.style.width = Math.max(screenSize.width, screenSize.height) + 'px';
+            body.style.width  = Math.max(screenSize.width, screenSize.height) + 'px';
 
             if (orientationProperties.forceOrientation === 'portrait' && (!orientationProperties.allowOrientationChange || forceOrientation)
                 && (state === STATES.EXPANDED || placement === PLACEMENTS.INTERSTITIAL)) {
 
                 maxDiv.style['-webkit-transform'] = 'rotate(90deg)';
                 var dx = (maxSize.height - maxSize.width)/2;
-                updateAdSize({'width':maxSize.width,'height':maxSize.height,'x':maxSize.y+dx, 'y':maxSize.x-dx});
+                updateAdSize({
+                    'width':  maxSize.width,
+                    'height': maxSize.height,
+                    'x': maxSize.y + dx,
+                    'y': maxSize.x - dx
+                });
                 if (state === STATES.EXPANDED) {
-                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {'width':maxSize.width,'height':maxSize.height,'x':0, 'y':0});
+                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {
+                        'width':  maxSize.width,
+                        'height': maxSize.height,
+                        'x': 0,
+                        'y': 0
+                    });
                 } else if (placement === PLACEMENTS.INTERSTITIAL) {
                     setContainerDefaultPosition();
                 }
                 setAdOrientation(0);
             } else {
-                updateAdSize({'width':maxSize.height,'height':maxSize.width,'x':maxSize.x, 'y':maxSize.y})
+                updateAdSize({
+                    'width':  maxSize.height,
+                    'height': maxSize.width,
+                    'x': maxSize.x,
+                    'y': maxSize.y
+                })
                 if (state === STATES.EXPANDED) {
-                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {'width':maxSize.height,'height':maxSize.width,'x':0, 'y':0});
+                    setAdResizeContainerStyle((adExpandedContainer || adResizeContainer), {
+                        'width':  maxSize.height,
+                        'height': maxSize.width,
+                        'x': 0,
+                        'y': 0
+                    });
                 } else if (placement === PLACEMENTS.INTERSTITIAL) {
-                    adContainer.style.width = defaultPosition.height + 'px';
+                    adContainer.style.width  = defaultPosition.height + 'px';
                     adContainer.style.height = defaultPosition.width + 'px';
-                    adContainer.style.top = defaultPosition.y + 'px';
+                    adContainer.style.top  = defaultPosition.y + 'px';
                     adContainer.style.left = defaultPosition.x + 'px';
                 }
                 setAdOrientation(90);
@@ -340,23 +414,89 @@ INFO mraid.js identification script found
             defaultWindowSize.outerHeight = adWindow.outerHeight;
             defaultWindowSize.innerHeight = adWindow.innerHeight;
         } else {
-            defaultWindowSize.innerWidth = adWindow.innerHeight;
+            defaultWindowSize.innerWidth  = adWindow.innerHeight;
             defaultWindowSize.innerHeight = adWindow.innerWidth;
-            defaultWindowSize.outerWidth = defaultWindowSize.innerWidth + (adWindow.outerWidth - adWindow.innerWidth); // + (adWindow.outerHeight - adWindow.innerHeight);
+            defaultWindowSize.outerWidth  = defaultWindowSize.innerWidth + (adWindow.outerWidth - adWindow.innerWidth); // + (adWindow.outerHeight - adWindow.innerHeight);
             defaultWindowSize.outerHeight = defaultWindowSize.innerHeight + (adWindow.outerHeight - adWindow.innerHeight);
         }
     };
 
     // PUBLIC ACTION METHODS ///////////////////////////////////////////////////////////////
 
-    mraidview.render = function() {
+    mraidview.render = function () {
         broadcastEvent(EVENTS.INFO, 'rendering');
         counter = 10;
         if (!adFrame || !adWindow || !adWindow.document || !adFrame.contentWindow) {
             broadcastEvent(EVENTS.INFO, 'creating adWindow');
-            adWindow = window.open((offscreen) ? 'safari/device-pages.html': 'safari/device.html', 'adWindow', 'left=1000,width='+screenSize.width+',height='+screenSize.height+',menubar=no,location=no,toolbar=no,status=no,personalbar=no,resizable=no,scrollbars=no,chrome=no,all=no');
 
-            adWindow.onload = function() {
+            document.getElementById("device-resizable-preview").style.display = "none";
+            document.getElementById("device-ad-preview").style.display = "block";
+            adWindow = document.getElementById("device-ad-preview");
+
+            var xmlhttp = '';
+            function loadXMLDoc() {
+                if (window.XMLHttpRequest) {
+                    xmlhttp = new XMLHttpRequest();
+                } else {
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        //alert(xmlhttp.responseText);
+                        adWindow.innerHTML = xmlhttp.responseText;
+
+                        broadcastEvent(EVENTS.INFO, 'adWindow loaded');
+
+                        adWindowAdj.x = window.outerWidth - screenSize.width;
+                        adWindowAdj.y = window.outerHeight - screenSize.height;
+
+                        console.log(">>> AD WINDOW:", adWindow);
+
+                        adWindow.style.width = screenSize.width + 'px';
+                        adWindow.style.height = screenSize.height + 'px';
+                        adWindow.style.overflow = 'hidden';
+                        adWindow.style.border = "1px dashed #999";
+
+                        adContainer = document.getElementById('adContainer');
+                        adContainer.addEventListener('ViewableChange', function (e) {
+                            changeViewable();
+                        });
+                        adResizeContainer = document.getElementById('adResizeContainer');
+                        adFrame = document.getElementById('adFrame');
+                        adFrame.contentWindow.orientation = 0; // Set initial orientation.
+                        closeEventRegion = document.getElementById('closeEventRegion');
+                        closeEventRegion.addEventListener('click', closeAd);
+
+                        window.setTimeout(function () { //timeout needed to get the actual window size
+                            mraidview.setDefaultWindowSize();
+                            if (offscreen) {
+                                adWindow.setNavigation();
+                            }
+                        }, 250);
+                        loadAd();
+                    }
+                }
+
+                if (offscreen) {
+                    xmlhttp.open("GET", "/js/mraid/safari/device-pages.html", true);
+                } else {
+                    xmlhttp.open("GET", "/js/mraid/safari/device.html", true);
+                }
+                xmlhttp.send();
+            }
+            loadXMLDoc();
+
+            /*
+            adWindow = window.open((offscreen)
+                ? '/js/mraid/safari/device-pages.html'
+                : '/js/mraid/safari/device.html',
+                'adWindow',
+                'left=1000,width=' + screenSize.width +
+                ',height=' + screenSize.height +
+                ',menubar=no,location=no,toolbar=no,status=no,personalbar=no,resizable=no,scrollbars=no,chrome=no,all=no');
+
+            adWindow.onload = function () {
                 broadcastEvent(EVENTS.INFO, 'adWindow loaded');
 
                 adWindowAdj.x = window.outerWidth - screenSize.width;
@@ -364,7 +504,7 @@ INFO mraid.js identification script found
                 adWindow.document.getElementsByTagName('body')[0].style.width = screenSize.width + 'px';
                 adWindow.document.getElementsByTagName('body')[0].style.height = screenSize.height + 'px';
                 adContainer = adWindow.document.getElementById('adContainer');
-                adContainer.addEventListener('ViewableChange', function(e) {
+                adContainer.addEventListener('ViewableChange', function (e) {
                     changeViewable();
                 });
                 adResizeContainer = adWindow.document.getElementById('adResizeContainer');
@@ -381,22 +521,23 @@ INFO mraid.js identification script found
                 }, 250);
                 loadAd();
             };
+            */
         } else {
             adWindow.close();
             adWindow = null;
-             mraidview.render();
+            mraidview.render();
         }
     };
 
     // PRIVATE METHODS ///////////////////////////////////////////////////////////////
 
-    var clone = function(obj) {
-        var f = function() {};
+    var clone = function (obj) {
+        var f = function () {};
         f.prototype = obj;
         return new f();
     };
 
-    var stringify = function(obj) {
+    var stringify = function (obj) {
         if (typeof obj == 'object') {
             if (obj.push) {
                 var out = [];
@@ -407,7 +548,7 @@ INFO mraid.js identification script found
             } else {
                 var out = [];
                 for (var p in obj) {
-                    out.push('\''+p+'\':'+obj[p]);
+                    out.push('\'' + p + '\':' + obj[p]);
                 }
                 return '{' + out.join(',') + '}';
             }
@@ -416,7 +557,7 @@ INFO mraid.js identification script found
         }
     };
 
-    var reset = function() {
+    var reset = function () {
         adContent = '';
         adBridge = null;
         adController = null;
@@ -428,33 +569,63 @@ INFO mraid.js identification script found
         active = {};
         size.width = defaultPosition.width;
         size.height = defaultPosition.height;
-        previousPosition = { x:0, y:0, width:0, height:0 };
+        previousPosition = {
+            x: 0,
+            y: 0,
+            width:  0,
+            height: 0
+        };
         previousState = null;
         state = STATES.DEFAULT;
-        expandProperties = { width:maxSize.width, height:maxSize.height, useCustomClose:false, isModal:false};
-        resizeProperties = { initialized: false, validated: false, width:0, height:0, customClosePosition:'top-right', offsetX:undefined, offsetY:undefined, allowOffscreen:true};
-        orientationProperties = {allowOrientationChange:true, forceOrientation:'none'};
-        orientation = (screenSize.width >= screenSize.height)?90:0;
+        expandProperties = {
+            width:  maxSize.width,
+            height: maxSize.height,
+            useCustomClose: false,
+            isModal:        false
+        };
+        resizeProperties = {
+            initialized: false,
+            validated:   false,
+            width:  0,
+            height: 0,
+            customClosePosition: 'top-right',
+            offsetX: undefined,
+            offsetY: undefined,
+            allowOffscreen: true
+        };
+        orientationProperties = {
+            allowOrientationChange: true,
+            forceOrientation:       'none'
+        };
+        orientation = (screenSize.width >= screenSize.height) ? 90 : 0;
         version = VERSIONS.UNKNOWN;
-        currentPosition = { 'x':0, 'y':0, 'width':defaultPosition.width, 'height':defaultPosition.height };
+        currentPosition = {
+            'x': 0,
+            'y': 0,
+            'width':  defaultPosition.width,
+            'height': defaultPosition.height
+        };
         isViewable = false;
     };
 
-    var showMraidCloseButton = function(toggle) {
+    var showMraidCloseButton = function (toggle) {
         var closeDiv = closeEventRegion;
         closeDiv.style.position = 'absolute';
 
         if (toggle) {
-            closeDiv.style.top = '';
-            closeDiv.style.left = '';
-            closeDiv.style.bottom = '';
-            closeDiv.style.right = '';
-            closeDiv.style.width = '50px';
-            closeDiv.style.height = '50px';
+            closeDiv.style.top     = '';
+            closeDiv.style.left    = '';
+            closeDiv.style.bottom  = '';
+            closeDiv.style.right   = '';
+            closeDiv.style.width   = '50px';
+            closeDiv.style.height  = '50px';
             closeDiv.style.display = 'none';
-            closeDiv.style.zIndex = getHighestZindex()+2;
-            closeDiv.style.cursor = 'pointer';
-            closeDiv.style.background = (expandProperties.useCustomClose) ? '': 'url("close.png") no-repeat 8px 8px';
+            closeDiv.style.zIndex  = getHighestZindex()+2;
+            closeDiv.style.cursor  = 'pointer';
+            closeDiv.style.background = (expandProperties.useCustomClose)
+                ? ''
+                : 'url("/js/mraid/safari/close.png") no-repeat 8px 8px';
+                //: 'url("close.png") no-repeat 8px 8px';
 
             if (state === STATES.RESIZED) {
                 closeDiv.style.background = '';
@@ -488,7 +659,7 @@ INFO mraid.js identification script found
         }
     };
 
-    var loadAd = function() {
+    var loadAd = function () {
         reset();
 
         if (adFrame.attachEvent) {
@@ -516,27 +687,36 @@ INFO mraid.js identification script found
         if (orientation%180 === 0){
             setMaxAdArea(maxSize);
         } else {
-            setMaxAdArea({'width':maxSize.height, 'height': maxSize.width, 'x': maxSize.x, 'y': maxSize.y});
+            setMaxAdArea({
+                'width':  maxSize.height,
+                'height': maxSize.width,
+                'x': maxSize.x,
+                'y': maxSize.y
+            });
         }
     };
 
-    var loadHtml = function(adHtml) {
+    var loadHtml = function (adHtml) {
         var doc = adFrame.contentWindow.document,
             adDiv = doc.getElementById('adHtml'),
             scripts,
             scriptsCount,
             script,
             i;
+
         if (!adHtml || !adDiv) {
             return;
         }
+
         broadcastEvent(EVENTS.INFO, 'loading ad html');
         adDiv.innerHTML = adHtml;
         scripts = doc.body.getElementsByTagName("script");
         scriptsCount = scripts.length;
-        for (i=0; i<scriptsCount; i++) {
+
+        for (i = 0; i < scriptsCount; i++) {
             script = doc.createElement('script');
             script.type = "text/javascript";
+
             if (scripts[i].src !== '') {
                 script.src = scripts[i].src;
             } else {
@@ -546,14 +726,14 @@ INFO mraid.js identification script found
         }
     };
 
-    var insertAdURI = function(newAdFrame, uri) {
+    var insertAdURI = function (newAdFrame, uri) {
         var qs = 'htmlproxy.php?url=' + encodeURIComponent(uri),
             success,
             twoPartHtml = '';
 
         success = (function () {
             return function (data) {
-                var scripts = '<script type="text/javascript" src="mraidview-bridge.js"></script><script type="text/javascript" src="mraid-main.js"></script>',
+                var scripts = '<script type="text/javascript" src="/js/mraid/safari/mraidview-bridge.js"></script><script type="text/javascript" src="/js/mraid/safari/mraid-main.js"></script>',
                     headStart,
                     headEnd,
                     headContent = ''; // Grab the contents of the head. We'll add these later so we have time to initialize mraid before any inline scripts run.
@@ -582,24 +762,23 @@ INFO mraid.js identification script found
                 }
             };
         })();
-        
+
         try {
             if (window.jQuery !== undefined) {
                 jQuery.get(qs, success);
             }
         } catch(e) {
-
         }
     };
 
-    var setContainerDefaultPosition = function() {
+    var setContainerDefaultPosition = function () {
         adContainer.style.left = defaultPosition.x + 'px';
         adContainer.style.top = defaultPosition.y + 'px';
         adContainer.style.width = defaultPosition.width + 'px';
         adContainer.style.height = defaultPosition.height + 'px';
     };
 
-    var resizeAd = function() {
+    var resizeAd = function () {
         adContainer.style.overflow = 'visible';
         var arcs = adResizeContainer.style;
         arcs.position = 'absolute';
@@ -618,7 +797,8 @@ INFO mraid.js identification script found
     };
 
     var setMaxAdArea = function (size) {
-        var maxDiv = adWindow.document.getElementById('maxArea');
+        //var maxDiv = adWindow.document.getElementById('maxArea');
+        var maxDiv = document.getElementById('maxArea');
         maxDiv.style.width = [size.width, 'px'].join('');
         maxDiv.style.height = [size.height, 'px'].join('');
         maxDiv.style.position = 'absolute';
@@ -627,7 +807,7 @@ INFO mraid.js identification script found
         !adBridge || adBridge.pushChange({'maxSize': size});
     };
 
-    var setExpandProperties = function(size){
+    var setExpandProperties = function (size){
         !adBridge || adBridge.pushChange({'expandProperties': size});
     };
 
@@ -663,9 +843,9 @@ INFO mraid.js identification script found
         adResizeContainer.style.overflow = 'hidden';
         var arcs = adResizeContainer.style;
         arcs.position = 'static';
-        arcs.top = '0';
-        arcs.left = '0';
-        arcs.width = '100%';
+        arcs.top    = '0';
+        arcs.left   = '0';
+        arcs.width  = '100%';
         arcs.height = '100%';
         adContainer['z-index'] = 0;
         size.width = currentPosition.width =  defaultPosition.width;
@@ -673,14 +853,14 @@ INFO mraid.js identification script found
         adBridge.pushChange({'size': size});
     };
 
-    var getSupports = function(feature) {
-        for (var i=0; i<supports.length; i++) {
+    var getSupports = function (feature) {
+        for (var i=0; i < supports.length; i++) {
             if (supports[i] == feature) return true;
         }
         return false;
     };
 
-    var getHighestZindex = function() {
+    var getHighestZindex = function () {
         var zi = 0,
             eles = document.getElementsByTagName('*');
 
@@ -692,7 +872,7 @@ INFO mraid.js identification script found
         return zi;
     };
 
-    var endExpanded = function() {
+    var endExpanded = function () {
         if (adExpandedContainer) {
             adResizeContainer.appendChild(closeEventRegion);
             adExpandedContainer.parentNode.removeChild(adExpandedContainer);
@@ -705,7 +885,7 @@ INFO mraid.js identification script found
         mraidview.setOrientation(orientation);
     };
 
-    var setResizeProperties = function(properties) {
+    var setResizeProperties = function (properties) {
         resizeProperties.validated = false;
 
         if (!properties || !properties.width || !properties.height) {
@@ -785,7 +965,7 @@ INFO mraid.js identification script found
         }
     };
 
-    var setResizePropertyValues = function(properties) {
+    var setResizePropertyValues = function (properties) {
         for (var property in resizeProperties) {
             if (properties && typeof (properties[property]) !== 'undefined'  && properties[property] !== '')
                 resizeProperties[property] = properties[property];
@@ -797,34 +977,45 @@ INFO mraid.js identification script found
 
     var closeAd = function () {
         showMraidCloseButton(false);
+
         if (state === STATES.DEFAULT) {
             adBridge.broadcastEvent('hide');
             state = STATES.HIDDEN;
-            adBridge.pushChange({'state':state});
+            adBridge.pushChange({
+                'state': state
+            });
         } else if (state === STATES.EXPANDED) {
             state = STATES.DEFAULT;
+
             if (inactiveAdBridge) {
                 adBridge = inactiveAdBridge;
                 adController = inactiveAdController;
                 inactiveAdBridge = null;
                 adController = null;
             }
+
             /* If forceOrientation is enabled, we need to disable it and update our size and position properties. */
             if (orientationProperties.forceOrientation === 'portrait' || orientationProperties.forceOrientation === 'landscape') {
                 orientationProperties = {'allowOrientationChange':true, 'forceOrientation':'none'};
                 adBridge.pushChange({'orientationProperties': orientationProperties});
             }
-            adBridge.pushChange({'state':state});
+            adBridge.pushChange({
+                'state': state
+            });
             endExpanded();
         } else if (state === STATES.RESIZED) {
             state = STATES.DEFAULT;
-            adBridge.pushChange({'state':state});
+            adBridge.pushChange({
+                'state': state
+            });
             resetDefaultSize();
         } else {
             return;
         }
 
-        adBridge.pushChange({'currentPosition':currentPosition});
+        adBridge.pushChange({
+            'currentPosition': currentPosition
+        });
         repaintAdWindow();
     };
 
@@ -834,7 +1025,7 @@ INFO mraid.js identification script found
         adWindow.resizeBy(1,0);
     };
 
-    var initAdBridge = function(bridge, controller) {
+    var initAdBridge = function (bridge, controller) {
         broadcastEvent(EVENTS.INFO, 'initializing bridge object ' + bridge + controller);
 
         inactiveAdBridge = adBridge;
@@ -847,17 +1038,17 @@ INFO mraid.js identification script found
             showMraidCloseButton(true);
         }
 
-        bridge.addEventListener('activate', function(service) {
+        bridge.addEventListener('activate', function (service) {
             active[service] = true;
         }, this);
 
-        bridge.addEventListener('deactivate', function(service) {
+        bridge.addEventListener('deactivate', function (service) {
             if (active[service]) {
                 active[service] = false;
             }
         }, this);
 
-        bridge.addEventListener('expand', function(uri) {
+        bridge.addEventListener('expand', function (uri) {
             if (state === STATES.HIDDEN || state === STATES.EXPANDED || state === STATES.UNKNOWN || state === STATES.LOADING) {
                 return;
             }
@@ -875,23 +1066,23 @@ INFO mraid.js identification script found
                 adFrameExpanded.setAttribute('scrolling', 'no');
                 adFrameExpanded.setAttribute('frameborder', '0');
                 adFrameExpanded.setAttribute('id', 'adFrameExpanded');
-                adFrameExpanded.style.height = '100%';
-                adFrameExpanded.style.width = '100%';
+                adFrameExpanded.style.height   = '100%';
+                adFrameExpanded.style.width    = '100%';
                 adFrameExpanded.style.position = 'absolute';
                 adFrameExpanded.style.overflow = 'hidden';
-                adFrameExpanded.style.padding = '0px';
-                adFrameExpanded.style.margin = '0px';
-                adFrameExpanded.style.border = 'none';
+                adFrameExpanded.style.padding  = '0px';
+                adFrameExpanded.style.margin   = '0px';
+                adFrameExpanded.style.border   = 'none';
                 adFrameExpanded.style['z-index'] = getHighestZindex()+1;
                 ac = adExpandedContainer;
                 acs = ac.style;
 
                 insertAdURI(adFrameExpanded, uri);
-                    
+
                 adExpandedContainer.appendChild(adFrameExpanded);
                 adExpandedContainer.appendChild(closeEventRegion);
                 adContainer.parentNode.appendChild(adExpandedContainer);
-                
+
                 adExpandedContainer.style['z-index'] = getHighestZindex()+1;
                 topAdContainer = adFrameExpanded;
             }
@@ -903,7 +1094,11 @@ INFO mraid.js identification script found
 //            topAdContainer['z-index'] = getHighestZindex()+1;
 
             if (!uri || uri == '') {
-                adBridge.pushChange({'state':state, 'currentPosition': currentPosition, 'size': size });
+                adBridge.pushChange({
+                    'state': state,
+                    'currentPosition': currentPosition,
+                    'size': size
+                });
                 broadcastEvent(EVENTS.INFO, 'expanding one-part ad');
                 repaintAdWindow();
 
@@ -917,7 +1112,7 @@ INFO mraid.js identification script found
 
         bridge.addEventListener('close', closeAd , this);
 
-        bridge.addEventListener('hide', function() {
+        bridge.addEventListener('hide', function () {
             adFrame.style.display = 'none';
             adResizeContainer.disabled = 'none';
             adContainer.style.display = 'none';
@@ -926,7 +1121,7 @@ INFO mraid.js identification script found
             adBridge.pushChange({ state:state, isViewable:false });
         }, this);
 
-        bridge.addEventListener('show', function() {
+        bridge.addEventListener('show', function () {
             adFrame.style.display = 'block';
             adResizeContainer.style.display = 'block';
             adContainer.style.display = 'block';
@@ -934,17 +1129,17 @@ INFO mraid.js identification script found
             adBridge.pushChange({ state:state });
         }, this);
 
-        bridge.addEventListener('open', function(URL) {
+        bridge.addEventListener('open', function (URL) {
             broadcastEvent(EVENTS.INFO, 'opening ' + URL);
             window.open(URL, '_blank', 'left=1000,width='+screenSize.width+',height='+screenSize.height+',menubar=no,location=no,toolbar=no,status=no,personalbar=no,resizable=no,scrollbars=no,chrome=no,all=no');
         }, this);
 
-        bridge.addEventListener('playVideo', function(URL) {
+        bridge.addEventListener('playVideo', function (URL) {
             broadcastEvent(EVENTS.INFO, 'playing ' + URL);
             window.open(URL, '_blank');
         }, this);
 
-        bridge.addEventListener('storePicture', function(URL) {
+        bridge.addEventListener('storePicture', function (URL) {
             var allow = confirm('CONFIRM: Store this image to gallery?\nURL:' + URL);
             if (allow) {
                 window.open('../imageDownload.php?imageUrl=' + URL);
@@ -954,7 +1149,7 @@ INFO mraid.js identification script found
             }
         }, this);
 
-        bridge.addEventListener('resize', function(uri) {
+        bridge.addEventListener('resize', function (uri) {
 
             if (state === STATES.EXPANDED) {
                 adFrame.contentWindow.broadcastEvent(EVENTS.ERROR, 'Can not expand a resized ad', 'resize');
@@ -969,7 +1164,7 @@ INFO mraid.js identification script found
             adBridge.pushChange({ 'state':state, 'currentPosition':currentPosition, 'size':size });
         }, this);
 
-        bridge.addEventListener('setExpandProperties', function(properties) {
+        bridge.addEventListener('setExpandProperties', function (properties) {
             broadcastEvent(EVENTS.INFO, 'setting expand properties to ' + stringify(properties));
             !properties.width || (expandProperties.width = properties.width);
             !properties.height || (expandProperties.height = properties.height);
@@ -978,13 +1173,13 @@ INFO mraid.js identification script found
             adBridge.pushChange({'expandProperties':expandProperties});
         }, this);
 
-        bridge.addEventListener('setResizeProperties', function(properties) {
+        bridge.addEventListener('setResizeProperties', function (properties) {
             broadcastEvent(EVENTS.INFO, 'setting resize properties to ' + stringify(properties));
             setResizeProperties(properties);
             adBridge.pushChange({'resizeProperties':resizeProperties});
         }, this);
 
-        bridge.addEventListener('createCalendarEvent', function(params) {
+        bridge.addEventListener('createCalendarEvent', function (params) {
             var allow = confirm('CONFIRM: Create this calendar event?\n' + stringify(params));
             if (allow) {
                 broadcastEvent(EVENTS.INFO, 'creating event ' + stringify(params));
@@ -993,22 +1188,22 @@ INFO mraid.js identification script found
             }
         }, this);
 
-        bridge.addEventListener('setOrientationProperties', function(properties) {
+        bridge.addEventListener('setOrientationProperties', function (properties) {
             broadcastEvent(EVENTS.INFO, 'setting orientation properties to ' + stringify(properties));
             setOrientationProperties(properties);
             adBridge.pushChange({'orientationProperties':orientationProperties});
         }, this);
 
-        bridge.addEventListener('useCustomClose', function(useCustomCloseIndicator) {
+        bridge.addEventListener('useCustomClose', function (useCustomCloseIndicator) {
              broadcastEvent(EVENTS.INFO, 'setting useCustomClose properties to ' + stringify(useCustomCloseIndicator));
              expandProperties.useCustomClose = !!useCustomCloseIndicator;
         }, this);
 
-        controller.addEventListener('info', function(message) {
+        controller.addEventListener('info', function (message) {
             broadcastEvent(EVENTS.INFO, message);
         }, this);
 
-        controller.addEventListener('error', function(message) {
+        controller.addEventListener('error', function (message) {
             broadcastEvent(EVENTS.ERROR, message);
         }, this);
 
@@ -1043,7 +1238,7 @@ INFO mraid.js identification script found
         bridge.pushChange({ state:state });
     };
 
-    var initAdFrame = function() {
+    var initAdFrame = function () {
         if (this.detachEvent) {
             this.detachEvent("onload", initAdFrame);
         } else {
@@ -1068,19 +1263,19 @@ INFO mraid.js identification script found
 
         var bridgeJS = doc.createElement('script');
         bridgeJS.setAttribute('type', 'text/javascript');
-        bridgeJS.setAttribute('src', 'mraidview-bridge.js');
+        bridgeJS.setAttribute('src', '/js/mraid/safari/mraidview-bridge.js');
         doc.getElementsByTagName('head')[0].appendChild(bridgeJS);
 
-        intervalID = win.setInterval(function() {
+        intervalID = win.setInterval(function () {
             if (win.mraidview) {
                 win.clearInterval(intervalID);
 
                 var mraidJS = doc.createElement('script');
                 mraidJS.setAttribute('type', 'text/javascript');
-                mraidJS.setAttribute('src', 'mraid-main.js');
+                mraidJS.setAttribute('src', '/js/mraid/safari/mraid-main.js');
                 doc.getElementsByTagName('head')[0].appendChild(mraidJS);
 
-                intervalID = win.setInterval(function() {
+                intervalID = win.setInterval(function () {
                     if (win.mraid) {
                         win.clearInterval(intervalID);
                         window.clearTimeout(timeoutID);
@@ -1095,7 +1290,7 @@ INFO mraid.js identification script found
     /**
      * init2PartAdFrame initializes the second ad frame used by two-part ads.
      */
-    var init2PartAdFrame = function(headContent) {
+    var init2PartAdFrame = function (headContent) {
         if (this.detachEvent) {
             this.detachEvent("onload", init2PartAdFrame);
         } else {
@@ -1116,7 +1311,7 @@ INFO mraid.js identification script found
             headDump.innerHTML = headContent;
             scripts = headDump.getElementsByTagName("script");
             scriptsCount = scripts.length;
-            for (i=0; i<scriptsCount; i++) {
+            for (i=0; i < scriptsCount; i++) {
                 script = doc.createElement('script');
                 script.type = "text/javascript";
                 if (scripts[i].src !== '') {
@@ -1139,10 +1334,10 @@ INFO mraid.js identification script found
         adScreen.height = screenSize.height;
 
         win.screen = adScreen;
-        intervalID = win.setInterval(function() {
+        intervalID = win.setInterval(function () {
             if (win.mraidview) {
                 win.clearInterval(intervalID);
-                intervalID = win.setInterval(function() {
+                intervalID = win.setInterval(function () {
                     if (win.mraid) {
                         win.clearInterval(intervalID);
                         window.clearTimeout(timeoutID);
@@ -1174,11 +1369,11 @@ INFO mraid.js identification script found
     var setAdOrientation = function (degree) {
         if (adContainerOrientation !== degree) {
             adContainerOrientation = degree;
-            /* 
+            /*
             * The code below has been commented for two reasons:
             * 1. The device should always report the correct orientation, so we don't want to override the
             * window.orientation property.
-            * 2. There is no MRAID orientation api, so we don't need to trigger an orientationchange event. This code is here 
+            * 2. There is no MRAID orientation api, so we don't need to trigger an orientationchange event. This code is here
             * as legacy from when MRAID orientation was under consideration.
             * ---
             * UPDATE: 7/1/2014
@@ -1190,12 +1385,21 @@ INFO mraid.js identification script found
             orientationChangeEvent.initEvent('orientationchange', false, false);
             adFrame.contentWindow.dispatchEvent(orientationChangeEvent);
             //adBridge.pushChange({'size': size, 'orientation': adContainerOrientation, 'currentPosition': currentPosition});
-            currentPosition = {'x': currentPosition.y, 'y': (maxSize.width - expandProperties.width - currentPosition.x), 'width': currentPosition.height, 'height': currentPosition.width};
-            adBridge.pushChange({'size': size, 'orientation': adContainerOrientation, 'currentPosition': currentPosition});
+            currentPosition = {
+                'x': currentPosition.y,
+                'y': (maxSize.width - expandProperties.width - currentPosition.x),
+                'width':   currentPosition.height,
+                'height': currentPosition.width
+            };
+            adBridge.pushChange({
+                'size': size,
+                'orientation': adContainerOrientation,
+                'currentPosition': currentPosition
+            });
         }
     };
 
-    var updateAdSize = function(val){
+    var updateAdSize = function (val){
         setMaxAdArea(val);
         setExpandProperties(val);
     };
